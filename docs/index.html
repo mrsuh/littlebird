@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Birthday Quest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+            crossorigin="anonymous"
+    >
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #fff7e6, #e3f2fd);
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .app-wrapper {
+            min-height: 100vh;
+        }
+
+        .game-card {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            background: #ffffffcc;
+            backdrop-filter: blur(6px);
+        }
+
+        .question-img {
+            border-radius: 0.75rem;
+            max-height: 280px;
+            object-fit: cover;
+        }
+
+        .badge-step {
+            background: #ffb74d;
+            color: #4e342e;
+            font-weight: 600;
+        }
+
+        .btn-main {
+            background: #42a5f5;
+            border-color: #42a5f5;
+            font-weight: 600;
+        }
+
+        .btn-main:hover {
+            background: #1e88e5;
+            border-color: #1e88e5;
+        }
+
+        .fun-title {
+            font-weight: 700;
+            color: #ff7043;
+        }
+
+        .fun-emoji {
+            font-size: 1.8rem;
+        }
+
+        .success-emoji {
+            font-size: 3rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container app-wrapper d-flex align-items-center justify-content-center py-4">
+    <div id="app" class="w-100" style="max-width: 480px;"></div>
+</div>
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"
+></script>
+
+<script>
+    const questions = [
+        {
+            text: "Настольная Лампа",
+            answer: "1",
+            image: "img/lamp.png"
+        },
+        {
+            text: "Воздушный шарик",
+            answer: "1",
+            image: "img/balloon.png"
+        },
+        {
+            text: "Боб тоже любит почитать",
+            answer: "1",
+            image: "img/recipe.png"
+        },
+        {
+            text: "Главная вкусняшка на день рождения",
+            answer: "1",
+            image: "img/cake.png"
+        },
+        {
+            text: "Cтул для стола",
+            answer: "1",
+            image: "img/chair.png"
+        },
+        {
+            text: "Последние 4 цифры телефона Юли",
+            answer: "1",
+            image: "img/phone.png"
+        },
+        {
+            text: "Кто стучиться в дверь ко мне с толстой сумкой на ремне?",
+            answer: "1",
+            image: "img/mail.png"
+        },
+    ];
+
+    const STORAGE_KEY = "encounter_current_question_v1";
+
+    function loadCurrentQuestionIndex() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return 0;
+        const n = parseInt(raw, 10);
+        if (Number.isNaN(n) || n < 0 || n > questions.length) return 0;
+        return n;
+    }
+
+    function saveCurrentQuestionIndex(index) {
+        localStorage.setItem(STORAGE_KEY, String(index));
+    }
+
+    let currentQuestionIndex = loadCurrentQuestionIndex();
+    const app = document.getElementById("app");
+
+    function render() {
+        app.innerHTML = "";
+
+        // ===== Карточка-подсказка "Как играть" (сверху) =====
+        const infoCard = document.createElement("div");
+        infoCard.className = "card game-card p-3 p-sm-3 mb-3";
+
+        const infoTitle = document.createElement("h2");
+        infoTitle.className = "h6 mb-2 text-primary fw-semibold d-flex align-items-center gap-2";
+        infoTitle.innerHTML = '<span>Как играть</span> <span>✨</span>';
+        infoCard.appendChild(infoTitle);
+
+        const infoText = document.createElement("p");
+        infoText.className = "mb-1 small";
+        infoText.textContent =
+            "По подсказкам находи спрятанные в квартире и подъезде коды и вводи их в поле ниже. " +
+            "Если код верный — откроется следующий вопрос.";
+        infoCard.appendChild(infoText);
+
+        const infoNote = document.createElement("p");
+        infoNote.className = "mb-0 small text-muted";
+        infoNote.textContent = "Если перезагрузишь страницу, прогресс сохранится 🙂";
+        infoCard.appendChild(infoNote);
+
+        app.appendChild(infoCard);
+        // ===== Конец блока "Как играть" =====
+
+        // Все вопросы пройдены
+        if (currentQuestionIndex >= questions.length) {
+            const card = document.createElement("div");
+            card.className = "card game-card p-4 text-center";
+
+            const emoji = document.createElement("div");
+            emoji.className = "success-emoji mb-3";
+            emoji.textContent = "🎉";
+            card.appendChild(emoji);
+
+            const title = document.createElement("h2");
+            title.className = "fun-title mb-3";
+            title.textContent = "Поздравляю!";
+            card.appendChild(title);
+
+            const msg = document.createElement("p");
+            msg.className = "mb-3";
+            msg.textContent = "Твой подарочек ждет тебя дома!";
+            card.appendChild(msg);
+
+            const resetBtn = document.createElement("button");
+            resetBtn.className = "btn btn-outline-secondary btn-sm";
+            resetBtn.textContent = "Начать сначала";
+            resetBtn.addEventListener("click", () => {
+                currentQuestionIndex = 0;
+                saveCurrentQuestionIndex(currentQuestionIndex);
+                render();
+            });
+            card.appendChild(resetBtn);
+
+            app.appendChild(card);
+            return;
+        }
+
+        const question = questions[currentQuestionIndex];
+
+        const card = document.createElement("div");
+        card.className = "card game-card p-3 p-sm-4";
+
+        // Шапка
+        const headerRow = document.createElement("div");
+        headerRow.className = "d-flex justify-content-between align-items-center mb-2";
+
+        const title = document.createElement("h1");
+        title.className = "h5 mb-0 fun-title d-flex align-items-center gap-2";
+        title.innerHTML = '<span class="fun-emoji">🎈</span><span>Birthday Quest</span>';
+        headerRow.appendChild(title);
+
+        const badge = document.createElement("span");
+        badge.className = "badge badge-step rounded-pill px-3 py-2";
+        badge.textContent = `Вопрос ${currentQuestionIndex + 1} / ${questions.length}`;
+        headerRow.appendChild(badge);
+
+        card.appendChild(headerRow);
+
+        // Картинка
+        const imgWrapper = document.createElement("div");
+        imgWrapper.className = "mb-3";
+        const img = document.createElement("img");
+        img.src = question.image;
+        img.alt = `Вопрос ${currentQuestionIndex + 1}`;
+        img.className = "img-fluid question-img w-100";
+        imgWrapper.appendChild(img);
+        card.appendChild(imgWrapper);
+
+        // Текст вопроса
+        const qText = document.createElement("p");
+        qText.className = "mb-3";
+        qText.textContent = question.text;
+        card.appendChild(qText);
+
+        // Поле ввода + кнопка
+        const formRow = document.createElement("div");
+        formRow.className = "row g-2 align-items-stretch mb-2";
+
+        const colInput = document.createElement("div");
+        colInput.className = "col-8 col-sm-9";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "form-control";
+        input.placeholder = "Введи найденный код";
+        input.autocomplete = "off";
+        colInput.appendChild(input);
+        formRow.appendChild(colInput);
+
+        const colBtn = document.createElement("div");
+        colBtn.className = "col-4 col-sm-3 d-grid";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-main";
+        btn.textContent = "OK";
+        colBtn.appendChild(btn);
+        formRow.appendChild(colBtn);
+
+        card.appendChild(formRow);
+
+        // Сообщение об ошибке
+        const error = document.createElement("div");
+        error.className = "text-danger small mt-1";
+        error.style.display = "none";
+        card.appendChild(error);
+
+        // Подсказка о регистре
+        const hint = document.createElement("div");
+        hint.className = "text-muted small mt-1";
+        hint.textContent = "Регистр букв не важен: можно вводить и маленькими, и большими.";
+        card.appendChild(hint);
+
+        // Обработчик проверки
+        function checkAnswer() {
+            const userValue = input.value.trim();
+            if (!userValue) {
+                error.textContent = "Сначала введи код 🙂";
+                error.style.display = "block";
+                return;
+            }
+
+            const normalizedUser = userValue.toLowerCase();
+            const normalizedCorrect = String(question.answer).trim().toLowerCase();
+
+            if (normalizedUser === normalizedCorrect) {
+                error.style.display = "none";
+                currentQuestionIndex += 1;
+                saveCurrentQuestionIndex(currentQuestionIndex);
+                render();
+            } else {
+                error.textContent = "Неправильный код. Попробуй ещё раз 💡";
+                error.style.display = "block";
+            }
+        }
+
+        btn.addEventListener("click", checkAnswer);
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                checkAnswer();
+            }
+        });
+
+        app.appendChild(card);
+
+        // Автофокус
+        setTimeout(() => input.focus(), 0);
+    }
+
+    render();
+</script>
+</body>
+</html>
