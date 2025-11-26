@@ -70,7 +70,7 @@
     </style>
 </head>
 <body>
-<div class="container app-wrapper d-flex align-items-center justify-content-center py-4">
+<div class="container app-wrapper d-flex align-items-center justify-content-center py-1">
     <div id="app" class="w-100" style="max-width: 480px;"></div>
 </div>
 <script
@@ -153,11 +153,6 @@
             "По подсказкам находи спрятанные в квартире и подъезде коды и вводи их в поле ниже. " +
             "Если код верный — откроется следующий вопрос.";
         infoCard.appendChild(infoText);
-
-        const infoNote = document.createElement("p");
-        infoNote.className = "mb-0 small text-muted";
-        infoNote.textContent = "Если перезагрузишь страницу, прогресс сохранится 🙂";
-        infoCard.appendChild(infoNote);
 
         app.appendChild(infoCard);
         // ===== Конец блока "Как играть" =====
@@ -263,12 +258,6 @@
         error.className = "text-danger small mt-1";
         error.style.display = "none";
         card.appendChild(error);
-
-        // Подсказка о регистре
-        const hint = document.createElement("div");
-        hint.className = "text-muted small mt-1";
-        hint.textContent = "Регистр букв не важен: можно вводить и маленькими, и большими.";
-        card.appendChild(hint);
 
         // Обработчик проверки
         function checkAnswer() {
